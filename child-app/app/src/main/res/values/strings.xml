@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ParentControl</string>
+    <string name="accessibility_service_label">ParentControl App Blocker</string>
+    <string name="accessibility_service_description">Monitors app usage and blocks restricted apps set by the parent.</string>
+    <string name="device_admin_explanation">Required to prevent this app from being uninstalled without the parent\'s knowledge.</string>
+    <string name="device_admin_disable_warning">Disabling this will remove parental protections from the device.</string>
+    <string name="pairing_title">Link This Device</string>
+</resources>
