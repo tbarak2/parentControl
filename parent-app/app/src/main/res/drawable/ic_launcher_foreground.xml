@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Shield body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,12 L18,28 L18,56 C18,78 33,95 54,102 C75,95 90,78 90,56 L90,28 Z"/>
+    <!-- Eye outer shape -->
+    <path
+        android:fillColor="#1B5E20"
+        android:pathData="M22,57 Q38,38 54,38 Q70,38 86,57 Q70,76 54,76 Q38,76 22,57 Z"/>
+    <!-- White iris -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M42,57 A12,12 0 1,0 66,57 A12,12 0 1,0 42,57"/>
+    <!-- Green pupil -->
+    <path
+        android:fillColor="#1B5E20"
+        android:pathData="M48,57 A6,6 0 1,0 60,57 A6,6 0 1,0 48,57"/>
+    <!-- Highlight dot -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.6"
+        android:pathData="M56,51 A3,3 0 1,0 62,51 A3,3 0 1,0 56,51"/>
+</vector>
