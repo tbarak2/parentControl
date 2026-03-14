@@ -93,10 +93,6 @@ class PairingActivity : AppCompatActivity() {
             "childId" to childId
         ))
 
-        // Create initial empty rules
-        val rulesRef = db.document("families/$parentUid/children/$childId/rules/current")
-        batch.set(rulesRef, mapOf("blockedApps" to emptyList<String>()))
-
         // Mark pairing code as used
         val codeRef = db.collection("pairingCodes").document(code)
         batch.update(codeRef, "used", true)
