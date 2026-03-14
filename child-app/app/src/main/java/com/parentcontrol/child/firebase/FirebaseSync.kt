@@ -19,41 +19,62 @@ class FirebaseSync(private val context: Context) {
         val childId = prefs.getString("childId", null) ?: return
         val repo = RulesRepository(context)
 
+        // Listen to rules
         db.document("families/$parentUid/children/$childId/rules/current")
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null || !snapshot.exists()) return@addSnapshotListener
 
-                // Blocked apps
                 @Suppress("UNCHECKED_CAST")
-                val blockedApps = snapshot.get("blockedApps") as? List<String> ?: emptyList()
-                repo.setBlockedApps(blockedApps.toSet())
+                repo.setBlockedApps((snapshot.get("blockedApps") as? List<String> ?: emptyList()).toSet())
 
-                // Time limits
                 @Suppress("UNCHECKED_CAST")
                 val timeLimitsRaw = snapshot.get("timeLimits") as? Map<String, Any> ?: emptyMap()
-                val timeLimits = timeLimitsRaw.mapValues { (_, v) ->
-                    when (v) {
-                        is Long -> v.toInt()
-                        is Int -> v
-                        else -> 0
-                    }
-                }
-                repo.setTimeLimits(timeLimits)
+                repo.setTimeLimits(timeLimitsRaw.mapValues { (_, v) -> when (v) { is Long -> v.toInt(); is Int -> v; else -> 0 } })
 
-                // Schedule
                 @Suppress("UNCHECKED_CAST")
                 val scheduleRaw = snapshot.get("schedule") as? Map<String, Any>
                 if (scheduleRaw != null) {
-                    val rule = ScheduleRule(
+                    repo.setSchedule(ScheduleRule(
                         enabled = scheduleRaw["enabled"] as? Boolean ?: false,
                         startBlock = scheduleRaw["startBlock"] as? String ?: "21:00",
                         endBlock = scheduleRaw["endBlock"] as? String ?: "07:00"
-                    )
-                    repo.setSchedule(rule)
+                    ))
                 }
+
+                @Suppress("UNCHECKED_CAST")
+                val contacts = (snapshot.get("emergencyContacts") as? List<String> ?: emptyList()).toSet()
+                repo.setEmergencyContacts(contacts)
 
                 updateLastSeen(parentUid, childId)
             }
+
+        // Listen to unlock requests approved by parent
+        db.collection("families/$parentUid/children/$childId/unlockRequests")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) return@addSnapshotListener
+                snapshot.documentChanges.forEach { change ->
+                    val doc = change.document
+                    val status = doc.getString("status") ?: return@forEach
+                    val packageName = doc.id
+                    if (status == "approved") {
+                        val minutes = (doc.getLong("approvedUntilMinutes") ?: 30L).toInt()
+                        repo.setTemporaryUnlock(packageName, minutes)
+                    } else if (status == "denied") {
+                        repo.clearTemporaryUnlock(packageName)
+                    }
+                }
+            }
+    }
+
+    fun sendUnlockRequest(packageName: String) {
+        val parentUid = prefs.getString("parentUid", null) ?: return
+        val childId = prefs.getString("childId", null) ?: return
+        db.document("families/$parentUid/children/$childId/unlockRequests/$packageName")
+            .set(mapOf(
+                "status" to "pending",
+                "packageName" to packageName,
+                "requestedAt" to Timestamp.now()
+            ))
     }
 
     fun logBlockedAttempt(packageName: String) {

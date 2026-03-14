@@ -11,8 +11,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.parentcontrol.parent.contacts.EmergencyContactsActivity
 import com.parentcontrol.parent.databinding.ActivityAppListBinding
 import com.parentcontrol.parent.model.AppInfo
+import com.parentcontrol.parent.requests.UnlockRequestsActivity
 import com.parentcontrol.parent.schedule.ScheduleActivity
 import com.parentcontrol.parent.usage.UsageActivity
 
@@ -42,14 +44,16 @@ class AppListActivity : AppCompatActivity() {
         binding.rvApps.adapter = adapter
 
         binding.btnViewUsage.setOnClickListener {
-            startActivity(Intent(this, UsageActivity::class.java).apply {
-                putExtra(UsageActivity.EXTRA_CHILD_ID, childId)
-            })
+            startActivity(Intent(this, UsageActivity::class.java).putExtra(UsageActivity.EXTRA_CHILD_ID, childId))
         }
         binding.btnSchedule.setOnClickListener {
-            startActivity(Intent(this, ScheduleActivity::class.java).apply {
-                putExtra(ScheduleActivity.EXTRA_CHILD_ID, childId)
-            })
+            startActivity(Intent(this, ScheduleActivity::class.java).putExtra(ScheduleActivity.EXTRA_CHILD_ID, childId))
+        }
+        binding.btnUnlockRequests.setOnClickListener {
+            startActivity(Intent(this, UnlockRequestsActivity::class.java).putExtra(UnlockRequestsActivity.EXTRA_CHILD_ID, childId))
+        }
+        binding.btnEmergencyContacts.setOnClickListener {
+            startActivity(Intent(this, EmergencyContactsActivity::class.java).putExtra(EmergencyContactsActivity.EXTRA_CHILD_ID, childId))
         }
 
         loadApps()
@@ -66,31 +70,24 @@ class AppListActivity : AppCompatActivity() {
         appsRef.get().addOnSuccessListener { appsDoc ->
             rulesRef.addSnapshotListener { rulesDoc, _ ->
                 binding.progressBar.visibility = View.GONE
-
                 @Suppress("UNCHECKED_CAST")
-                val installedApps = (appsDoc.get("apps") as? List<Map<String, String>>) ?: emptyList()
+                val installedApps = appsDoc.get("apps") as? List<Map<String, String>> ?: emptyList()
                 @Suppress("UNCHECKED_CAST")
-                val blockedApps = ((rulesDoc?.get("blockedApps") as? List<String>)?.toSet()) ?: emptySet()
+                val blockedApps = (rulesDoc?.get("blockedApps") as? List<String>)?.toSet() ?: emptySet()
                 @Suppress("UNCHECKED_CAST")
                 val timeLimitsRaw = rulesDoc?.get("timeLimits") as? Map<String, Any> ?: emptyMap()
                 currentTimeLimits = timeLimitsRaw.mapValues { (_, v) ->
                     when (v) { is Long -> v.toInt(); is Int -> v; else -> 0 }
                 }.toMutableMap()
 
-                val appInfoList = installedApps
+                adapter.submitList(installedApps
                     .map {
                         val pkg = it["packageName"] ?: ""
-                        AppInfo(
-                            packageName = pkg,
-                            appName = it["appName"] ?: pkg,
-                            isBlocked = blockedApps.contains(pkg),
-                            dailyLimitMinutes = currentTimeLimits[pkg]
-                        )
+                        AppInfo(pkg, it["appName"] ?: pkg, blockedApps.contains(pkg), currentTimeLimits[pkg])
                     }
                     .filter { it.packageName.isNotEmpty() }
                     .sortedBy { it.appName }
-
-                adapter.submitList(appInfoList)
+                )
             }
         }.addOnFailureListener {
             binding.progressBar.visibility = View.GONE
@@ -99,8 +96,7 @@ class AppListActivity : AppCompatActivity() {
     }
 
     private fun toggleAppBlock(packageName: String, shouldBlock: Boolean) {
-        val rulesRef = Firebase.firestore
-            .document("families/$parentUid/children/$childId/rules/current")
+        val rulesRef = Firebase.firestore.document("families/$parentUid/children/$childId/rules/current")
         rulesRef.get().addOnSuccessListener { doc ->
             @Suppress("UNCHECKED_CAST")
             val current = (doc.get("blockedApps") as? List<String>)?.toMutableList() ?: mutableListOf()
@@ -119,7 +115,6 @@ class AppListActivity : AppCompatActivity() {
         }
         AlertDialog.Builder(this)
             .setTitle("Daily Limit — ${app.appName}")
-            .setMessage("Set maximum minutes per day. Leave 0 or empty to remove limit.")
             .setView(input)
             .setPositiveButton("Save") { _, _ ->
                 val minutes = input.text.toString().toIntOrNull() ?: 0
@@ -130,13 +125,8 @@ class AppListActivity : AppCompatActivity() {
     }
 
     private fun saveTimeLimit(packageName: String, minutes: Int) {
-        if (minutes <= 0) {
-            currentTimeLimits.remove(packageName)
-        } else {
-            currentTimeLimits[packageName] = minutes
-        }
-        Firebase.firestore
-            .document("families/$parentUid/children/$childId/rules/current")
+        if (minutes <= 0) currentTimeLimits.remove(packageName) else currentTimeLimits[packageName] = minutes
+        Firebase.firestore.document("families/$parentUid/children/$childId/rules/current")
             .update("timeLimits", currentTimeLimits)
             .addOnSuccessListener {
                 val msg = if (minutes > 0) "Limit set: $minutes min/day" else "Limit removed"

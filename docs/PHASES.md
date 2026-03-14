@@ -64,10 +64,11 @@
 **Goal:** App is stable, user-friendly, and ready for real use.
 
 ### Deliverables
-- [ ] Setup wizard with step-by-step permission grant flow
-- [ ] Child can request permission to use blocked app (parent approves/denies)
-- [ ] Emergency contact: child can always call/SMS specified contacts even if locked
-- [ ] Proper error handling and offline UX
+- [x] Child can request access to blocked app → parent gets real-time notification to approve/deny
+- [x] Parent approves with 30 min or 1 hr — child device temporarily unblocks the app
+- [x] Emergency contacts — phone numbers always callable even during schedule lock
+- [x] Dialer apps always bypassed (never blocked)
+- [x] Offline-safe — all rules cached in SharedPreferences, last known rules apply if no internet
 - [ ] App icons, branding
 - [ ] Play Store listing preparation
 

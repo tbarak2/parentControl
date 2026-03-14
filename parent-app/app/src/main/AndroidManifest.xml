@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="false"
@@ -22,6 +23,8 @@
         <activity android:name=".apps.AppListActivity" android:exported="false" />
         <activity android:name=".usage.UsageActivity" android:exported="false" />
         <activity android:name=".schedule.ScheduleActivity" android:exported="false" />
+        <activity android:name=".requests.UnlockRequestsActivity" android:exported="false" />
+        <activity android:name=".contacts.EmergencyContactsActivity" android:exported="false" />
 
     </application>
 

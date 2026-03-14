@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#CC000000"
@@ -43,12 +44,21 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_go_home"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="48dp"
         android:text="Go Home"
+        app:backgroundTint="#FF5252" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_request_access"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Request Access from Parent"
+        android:visibility="gone"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
         android:textColor="#FFFFFF"
-        app:backgroundTint="#FF5252"
-        xmlns:app="http://schemas.android.com/apk/res-auto"/>
+        app:strokeColor="#FFFFFF" />
 
 </LinearLayout>
