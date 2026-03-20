@@ -40,6 +40,7 @@ class MonitoringService : Service() {
 
         if (firebaseSync.isPaired()) {
             firebaseSync.startListening()
+            firebaseSync.uploadInstalledApps(applicationContext)
             scheduleHandler.post(scheduleRunnable)
             scheduleUsageWorker()
         }

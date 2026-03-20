@@ -66,6 +66,17 @@ class FirebaseSync(private val context: Context) {
             }
     }
 
+    fun uploadInstalledApps(context: Context) {
+        val parentUid = prefs.getString("parentUid", null) ?: return
+        val childId = prefs.getString("childId", null) ?: return
+        val pm = context.packageManager
+        val apps = pm.getInstalledApplications(0)
+            .filter { pm.getLaunchIntentForPackage(it.packageName) != null }
+            .map { mapOf("packageName" to it.packageName, "appName" to pm.getApplicationLabel(it).toString()) }
+        db.document("families/$parentUid/children/$childId/installedApps/list")
+            .set(mapOf("apps" to apps))
+    }
+
     fun sendUnlockRequest(packageName: String) {
         val parentUid = prefs.getString("parentUid", null) ?: return
         val childId = prefs.getString("childId", null) ?: return
